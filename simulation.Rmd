@@ -1,0 +1,27 @@
+---
+title: "Simulation"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## random  input
+```{r generate variables with no censoring}
+set.seed(1)
+# simulate age variable for patients and convert to integers
+A = round(rnorm(500, mean = 30, sd = 5), 0); A
+
+# generate T variable
+T = round(rnorm(500, mean = 60, sd = 5), 0); T
+
+# make sure that T - A is positive
+T - A
+
+# add time-dependent variable X(a)
+error = round(rnorm(500, mean = 5, sd = 2), 0); error
+X_a = 2*A + error; X_a
+```
+
