@@ -56,8 +56,15 @@ patients_tidy =
 ```
 
 ## survival prediction
-```{r random forest}
-# use random forest to predict survival rate
+```{r within-cluster resampling}
+# write a function to conduct within-cluster resampling
+# data is clustered by repeated visits for one individual
+# write function to randomly select one record from one individual and store the results
+cluster_sample_selection = function(dataframe) {
+  sample_dataframe = 
+  dataframe[sample(nrow(dataframe), 3), ]
+  return(sample_dataframe)  
+}
 
 ```
 
