@@ -81,20 +81,64 @@ cluster_sample_selection = function(dataframe) {
   return(sample_dataframe)  
 }
 
+# make up a test dataset (follow the style of training dataset)
+A = round(rnorm(10, mean = 30, sd = 5), 0); A
+T = round(rnorm(10, mean = 60, sd = 5), 0); T
+error = round(rnorm(10, mean = 5, sd = 1), 0); error
+X_a = 2*A + error; X_a
+# create patient ID numbers
+id = 1:10
+
+patient_info_baseline = cbind(id, A, X_a, T) %>% as.data.frame()
+
+# generate time-dependent predictors
+id = c(rep(1, 3), rep(2, 3), rep(3, 3), rep(4, 3), rep(5, 3), rep(6, 3), rep(7, 3), rep(8, 3), rep(9, 3), rep(10, 3)); id
+
+visit = c(rep(1:3, 10)); visit
+
+error2 = round(rnorm(10, mean = 5, sd = 0.1), 0)
+X_t = X_a + visit + error2; X_t
+
+# generate more X(t) predictors
+X_t2 = X_a^2 * visit + 0.01 * error2; X_t2
+X_t3 = X_a^3 - visit + 0.001 * error2; X_t3
+X_t4 = 0.1 * X_a^(1/2) + visit + error2; X_t4
+X_t5 = 0.001 * X_a^4 + visit - error2; X_t5
+test_data_time_dependent = cbind(id, visit, X_t, X_t2, X_t3, X_t4, X_t5) %>% as.data.frame()
+
+test_data = sqldf("SELECT *
+                  FROM patient_info_baseline AS p
+                  LEFT JOIN test_data_time_dependent AS t
+                  ON p.id = t.id
+                 ")
+test_data
+# tidy data and ensure A is also changing over time
+test_tidy = 
+  test_data %>% 
+  select(-id..5) %>% 
+  group_by(id) %>% 
+  mutate(A = A + visit) %>% 
+  select(-X_a)
+
 # test whether this function works
-test = cluster_sample_selection(patients_tidy); test
+test.resample = cluster_sample_selection(test_tidy)
 
 # write a function to conduct repeated survival analysis for each resampled data
 # declare some variables beforehands
 T_sum = 0
 # write a for loop to calculate survival rate using random forests
 for(i in 1:10) {
-  set.seed(1029)
   data = cluster_sample_selection(patients_tidy)
   # let T be the outcome varaible and fit random forests model
   rf = randomForest(T ~ A + X_t + X_t2 + X_t3 + X_t4 + X_t5, data = data, mtry = 2)
+  
+  T_sum = T_sum + predict(rf, newdata = test.resample, type = "response")
 }
 
-  rf$y
+T_average = T_sum/10; T_average
+```
+
+```{r calculate survival rate}
+
 ```
 
