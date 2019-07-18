@@ -53,6 +53,10 @@ patients_tidy =
   select(-id..5) %>% 
   group_by(id) %>% 
   mutate(A = A + visit)
+
+# view data
+patients_tidy
+
 ```
 
 ## survival prediction
@@ -62,9 +66,23 @@ patients_tidy =
 # write function to randomly select one record from one individual and store the results
 cluster_sample_selection = function(dataframe) {
   sample_dataframe = 
-  dataframe[sample(nrow(dataframe), 3), ]
+    dataframe %>% 
+    group_by(id) %>% 
+    sample_n(size = 1)
   return(sample_dataframe)  
 }
 
+# test whether this function works
+test = cluster_sample_selection(patients_tidy); test
+
+# write a function to conduct repeated survival analysis for each resampled data
+# declare some variables beforehands
+survival_rate_sum = 0 
+# write a for loop to calculate survival rate using random forests
+for(i in 1:1000) {
+  data = cluster_sample_selection(patients_tidy)
+  # let T be the outcome varaible and fit random forests model
+  
+}
 ```
 
