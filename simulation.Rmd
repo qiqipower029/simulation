@@ -7,6 +7,9 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(sqldf)
+library(randomForest)
+library(rpart)
+library(rpart.plot)
 ```
 
 ## random patients info input
@@ -38,7 +41,12 @@ visit = c(rep(1:3, 10)); visit
 error2 = round(rnorm(10, mean = 5, sd = 0.1), 0)
 X_t = X_a + visit + error2; X_t
 
-time_dependent_info = cbind(id, visit, X_t) %>% as.data.frame()
+# generate more X(t) predictors
+X_t2 = X_a^2 * visit + 0.01 * error2; X_t2
+X_t3 = X_a^3 - visit + 0.001 * error2; X_t3
+X_t4 = 0.1 * X_a^(1/2) + visit + error2; X_t4
+X_t5 = 0.001 * X_a^4 + visit - error2; X_t5
+time_dependent_info = cbind(id, visit, X_t, X_t2, X_t3, X_t4, X_t5) %>% as.data.frame()
 
 # left join two datasets using SQL syntax
 patients = sqldf("SELECT *
@@ -52,7 +60,8 @@ patients_tidy =
   patients %>% 
   select(-id..5) %>% 
   group_by(id) %>% 
-  mutate(A = A + visit)
+  mutate(A = A + visit) %>% 
+  select(-X_a)
 
 # view data
 patients_tidy
@@ -77,12 +86,15 @@ test = cluster_sample_selection(patients_tidy); test
 
 # write a function to conduct repeated survival analysis for each resampled data
 # declare some variables beforehands
-survival_rate_sum = 0 
+T_sum = 0
 # write a for loop to calculate survival rate using random forests
-for(i in 1:1000) {
+for(i in 1:10) {
+  set.seed(1029)
   data = cluster_sample_selection(patients_tidy)
   # let T be the outcome varaible and fit random forests model
-  
+  rf = randomForest(T ~ A + X_t + X_t2 + X_t3 + X_t4 + X_t5, data = data, mtry = 2)
 }
+
+  rf$y
 ```
 
